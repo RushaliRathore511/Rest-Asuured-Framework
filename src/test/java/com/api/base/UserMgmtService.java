@@ -1,8 +1,7 @@
 package com.api.base;
 
-import com.beust.ah.A;
 import io.restassured.response.Response;
-import org.testng.annotations.Test;
+
 
 public class UserMgmtService extends BaseService{
 

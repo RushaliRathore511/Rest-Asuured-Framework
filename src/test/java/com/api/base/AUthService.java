@@ -3,7 +3,6 @@ package com.api.base;
 import com.api.models.request.LoginRequest;
 import com.api.models.request.SignUpRequest;
 import io.restassured.response.Response;
-import org.testng.Assert;
 
 import java.util.HashMap;
 

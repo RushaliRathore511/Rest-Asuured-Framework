@@ -8,7 +8,7 @@ import io.restassured.specification.RequestSpecification;
 
 public class BaseService {
 
-private RequestSpecification requestSpecification;
+private final RequestSpecification requestSpecification;
 
     public static final String BASE_URL  = "http://64.227.160.186:8080";
 
