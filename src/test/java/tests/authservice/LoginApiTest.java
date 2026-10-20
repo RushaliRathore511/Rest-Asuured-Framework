@@ -1,27 +1,48 @@
 package tests.authservice;
 
 import base.AuthService;
-import listeners.TestListener;
+import io.restassured.response.Response;
 import models.request.LoginRequest;
 import models.response.LoginResponse;
-import io.restassured.response.Response;
 import org.testng.Assert;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import tests.TestCredentials;
 
-@Listeners(TestListener.class)
 public class LoginApiTest extends AuthService {
 
-    @Test(description = "Login API functionality")
-    public void loginTest(){
-        LoginRequest request = LoginRequest.builder().userName("testuser").password("testpass").build();
-        Response response =login(request); //response is json object
-        System.out.println(response.prettyPrint());
-       LoginResponse loginResponse = response.as(LoginResponse.class); //converting json object to Java object //deserialization
-        Assert.assertNotNull(loginResponse.getToken());
-        System.out.println(loginResponse.getId());
-        System.out.println(loginResponse.getType());
-        System.out.println(loginResponse.getEmail());
-        System.out.println(loginResponse.getUserRoles());
+    @Test(groups = "auth", description = "Valid credentials should return an access token")
+    public void loginWithValidCredentialsReturnsToken() {
+        Response response = login(TestCredentials.validLogin());
+
+        Assert.assertEquals(response.getStatusCode(), 200, "Login should succeed");
+        LoginResponse loginResponse = response.as(LoginResponse.class);
+        Assert.assertNotNull(loginResponse.getToken(), "Login response should contain a token");
+        Assert.assertFalse(loginResponse.getToken().isBlank(), "Token should not be empty");
+    }
+
+    @Test(groups = "auth", description = "Invalid credentials should not authenticate")
+    public void loginWithInvalidCredentialsIsRejected() {
+        LoginRequest request = LoginRequest.builder()
+                .userName("portfolio_invalid_user")
+                .password("definitely-not-valid")
+                .build();
+
+        Response response = login(request);
+
+        Assert.assertTrue(response.getStatusCode() >= 400 && response.getStatusCode() < 500,
+                "Invalid credentials should return a client error, not succeed or fail on the server");
+    }
+
+    @Test(groups = "auth", description = "Empty credentials should not authenticate")
+    public void loginWithEmptyCredentialsIsRejected() {
+        LoginRequest request = LoginRequest.builder()
+                .userName("")
+                .password("")
+                .build();
+
+        Response response = login(request);
+
+        Assert.assertTrue(response.getStatusCode() >= 400 && response.getStatusCode() < 500,
+                "Empty credentials should return a client error, not succeed or fail on the server");
     }
 }

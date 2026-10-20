@@ -1,45 +1,46 @@
 package client;
 
+import base.AuthService;
 import config.ConfigManager;
 import credentials.CredentialsProvider;
 import credentials.TokenInfo;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import models.request.LoginRequest;
 import models.response.LoginResponse;
-import io.restassured.response.Response;
 
 import java.util.Map;
 
-import static base.UserMgmtService.BASE_PATH;
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.post;
 
 public class AuthClient {
 
-    //1st way
-    public LoginResponse login(LoginRequest request) {
-        Response response =
-                post(BASE_PATH + "login", request);
-        return response.as(LoginResponse.class);
+    private final AuthService authService = new AuthService();
 
+    public LoginResponse login(LoginRequest request) {
+        Response response = authService.login(request);
+        response.then().statusCode(200);
+        return response.as(LoginResponse.class);
     }
 
     public TokenInfo generateToken() {
-
         String clientId = CredentialsProvider.getClientId();
         String clientSecret = CredentialsProvider.getClientSecret();
 
+        if (clientId == null || clientId.isBlank() ||
+                clientSecret == null || clientSecret.isBlank()) {
+            throw new IllegalStateException(
+                    "Set CLIENT_ID and CLIENT_SECRET environment variables before requesting a client token");
+        }
 
-        //2nd way
-        LoginResponse loginResponse = given().
-                baseUri(ConfigManager.getAuthUrl()).
-                contentType(ContentType.JSON).
-                header("X-mirrod-d", "werwre")
-                .body(Map.of("clientId", clientId, "clientSecret", clientSecret)).
-                post().as(LoginResponse.class);
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .header("X-mirrod-d", "werwre")
+                .body(Map.of("clientId", clientId, "clientSecret", clientSecret))
+                .post(ConfigManager.getAuthUrl());
 
-        return new TokenInfo(loginResponse.getExpiresAt(),loginResponse.getAccessToken());
+        response.then().statusCode(200);
+        LoginResponse loginResponse = response.as(LoginResponse.class);
+        return new TokenInfo(loginResponse.getAccessToken(), loginResponse.getExpiresAt());
     }
-
-
 }

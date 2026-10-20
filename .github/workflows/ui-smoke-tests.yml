@@ -1,0 +1,32 @@
+name: Framework smoke tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  framework-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Run token expiry unit tests
+        run: mvn --batch-mode test -Dsuite=unit
+      - name: Run UI smoke tests
+        run: mvn --batch-mode test -Dsuite=ui -Dheadless=true
+      - name: Save test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: framework-test-reports
+          path: target/surefire-reports/
+          if-no-files-found: ignore

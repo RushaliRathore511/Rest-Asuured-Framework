@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# Local IDE migration metadata and generated logs
+.idea/copilot.data.migration.*.xml
+.idea/encodings.xml
+logs/
