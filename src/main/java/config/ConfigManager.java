@@ -4,47 +4,59 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class ConfigManager {
-    private static final Properties properties = new Properties();
+public final class ConfigManager {
+    private static final Properties PROPERTIES = loadProperties();
 
-    static{
-        try {
-            loadProperties();
+    private ConfigManager() {
+    }
+
+    private static Properties loadProperties() {
+        String env = System.getProperty("env", "qa");
+        String fileName = "config/" + env + ".properties";
+        Properties properties = new Properties();
+
+        try (InputStream input = ConfigManager.class.getClassLoader().getResourceAsStream(fileName)) {
+            if (input == null) {
+                throw new IllegalStateException("Configuration file not found: " + fileName);
+            }
+            properties.load(input);
+            return properties;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Unable to load configuration file: " + fileName, e);
         }
     }
 
-
-private static void loadProperties() throws IOException {
-
-    String env = System.getProperty("env", "qa");
-
-    String fileName = "config/" + env + ".properties";
-
-    InputStream inputStream = ConfigManager.class.getClassLoader().getResourceAsStream(fileName);
-
-    if (inputStream == null) {
-        throw new RuntimeException("Failed to load Configuration file:" + fileName);
-    }
-    properties.load(inputStream);
-}
-
-    public static String get(String key){
-        String value =   properties.getProperty(key);
-        if (value == null) {
-            throw new RuntimeException(
-                    "Configuration key not found: " + key
-            );
+    public static String get(String key) {
+        String value = PROPERTIES.getProperty(key);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("Configuration key is missing: " + key);
         }
-        return value;
+        return value.trim();
     }
 
-    public static String getBaseUrl(){
-        return get("base.url");
-}
+    public static String getBaseUrl() {
+        String override = System.getProperty("base.url");
+        if (override == null || override.isBlank()) {
+            override = System.getenv("API_BASE_URL");
+        }
+        return override == null || override.isBlank() ? get("base.url") : override.trim();
+    }
 
-    public static String getAuthUrl(){
-        return get("auth.url");
+    public static String getAuthUrl() {
+        String override = System.getProperty("auth.url");
+        if (override == null || override.isBlank()) {
+            override = System.getenv("AUTH_URL");
+        }
+        if (override != null && !override.isBlank()) {
+            return override.trim();
+        }
+
+        String configuredUrl = PROPERTIES.getProperty("auth.url");
+        if (configuredUrl != null && !configuredUrl.isBlank()) {
+            return configuredUrl.trim();
+        }
+
+        throw new IllegalStateException(
+                "Auth endpoint is not configured. Set AUTH_URL or add auth.url to the selected environment properties.");
     }
 }

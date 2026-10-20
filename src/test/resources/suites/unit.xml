@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Unit Tests" parallel="false">
+    <test name="Token manager tests">
+        <classes>
+            <class name="tests.credentials.TokenInfoTest"/>
+        </classes>
+    </test>
+</suite>
