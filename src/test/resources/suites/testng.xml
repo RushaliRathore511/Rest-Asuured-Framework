@@ -4,7 +4,7 @@
 
     <listeners>
         <listener
-                class-name="com.api.listeners.TestListener"/>
+                class-name="listeners.TestListener"/>
     </listeners>
 
     <test name="API Tests">
@@ -15,8 +15,8 @@
             </run>
         </groups>
         <classes>
-            <class name="com.api.tests.usermgmtservice.GetProfileTest"/>
-            <class name="com.api.tests.authservice.LoginApiTest"/>
+            <class name="tests.usermgmtservice.GetProfileTest"/>
+            <class name="tests.authservice.LoginApiTest"/>
         </classes>
     </test>
 </suite>
