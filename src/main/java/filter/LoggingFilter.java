@@ -16,7 +16,14 @@ public class LoggingFilter implements Filter {
     public Response filter(FilterableRequestSpecification requestSpec,
                            FilterableResponseSpecification responseSpec,
                            FilterContext context) {
-        logger.info("Request: {} {}", requestSpec.getMethod(), requestSpec.getURI());
+        String requestUri = requestSpec.getURI();
+        int queryStart = requestUri.indexOf('?');
+        if (queryStart >= 0) {
+            requestUri = requestUri.substring(0, queryStart);
+        }
+
+        // Do not log request headers, bodies, tokens or query-parameter values.
+        logger.info("Request: {} {}", requestSpec.getMethod(), requestUri);
         Response response = context.next(requestSpec, responseSpec);
         logger.info("Response: {} ({} ms)", response.getStatusCode(), response.getTime());
         return response;
